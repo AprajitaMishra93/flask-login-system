@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 import mysql.connector
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
@@ -22,27 +23,33 @@ def signup():
     username = request.form['username']
     password = request.form['password']
 
+    # Hash Password
+    hashed_password = generate_password_hash(password)
+
     try:
         query = "INSERT INTO users (username, password) VALUES (%s, %s)"
-        cursor.execute(query,(username, password))
+        cursor.execute(query,(username, hashed_password))
         db.commit()
         return "Signup Successfully !!"
-    except:
-        return "Username already exists !!"
-
+    except Exception as e:
+        return str(e)
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form['username']
     password = request.form['password']
 
-    query = "SELECT * FROM users WHERE username = %s AND password = %s"
-    cursor.execute(query, (username,password))
+    query = "SELECT * FROM users WHERE username = %s"
+    cursor.execute(query, (username,))
     user = cursor.fetchone()
 
     if user:
-        return f"Welcome {username} !! :)"
+        stored_password = user[2]  #password column
+        if check_password_hash(stored_password, password):
+            return "Login Successfully !!"
+        else:
+            return "Wrong Password !!"
     else:
-        return "Invalid username or password !! :("
-
+        return "User Not Found !!"
+        
 if __name__ == '__main__':
     app.run(debug=True)
