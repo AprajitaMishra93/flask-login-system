@@ -23,6 +23,10 @@ def signup():
     username = request.form['username']
     password = request.form['password']
 
+    # Validation
+    if not username or not password :
+        return "All fields are required !!"
+
     # Hash Password
     hashed_password = generate_password_hash(password)
 
@@ -37,6 +41,10 @@ def signup():
 def login():
     username = request.form['username']
     password = request.form['password']
+
+    #Validation
+    if not username or not password :
+        return "All fields are required !!"
 
     query = "SELECT * FROM users WHERE username = %s"
     cursor.execute(query, (username,))
